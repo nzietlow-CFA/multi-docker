@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t nzietlow/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true nzietlow/react-test npm test
+
+after_success:
+  - docker build -t nzietlow/multi-client ./client
+  - docker build -t nzietlow/multi-nginx ./nginx
+  - docker build -t nzietlow/multi-server ./server
+  - docker build -t nzietlow/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push nzietlow/multi-client
+  - docker push nzietlow/multi-nginx
+  - docker push nzietlow/multi-server
+  - docker push nzietlow/multi-worker
